@@ -27,15 +27,15 @@ Result writeFilesToExtdata() {
 	badgeMngFileBuf = (u8*)malloc(badgeMngFileSize);
 	if (badgeMngFileBuf == NULL) {ret = 1; goto end;}
 	
-	DIR* dir = opendir("/3ds/data/Simple Badge Injector/Badge Files");
+	DIR* dir = opendir("/3ds/SimpleBadgeInjector/Badge Files");
 	if (!dir) {ret = 2; goto end;}
 	closedir(dir);
 	
-	FILE* file = fopen("/3ds/data/Simple Badge Injector/Badge Files/BadgeData.dat", "r");
+	FILE* file = fopen("/3ds/SimpleBadgeInjector/Badge Files/BadgeData.dat", "r");
 	if (!file) {ret = 3; goto end;}
 	fread(badgeDataBuf, 1, badgeDataSize, file);
 	fclose(file);
-	file = fopen("/3ds/data/Simple Badge Injector/Badge Files/BadgeMngFile.dat", "r");
+	file = fopen("/3ds/SimpleBadgeInjector/Badge Files/BadgeMngFile.dat", "r");
 	if (!file) {ret = 3; goto end;}
 	fread(badgeMngFileBuf, 1, badgeMngFileSize, file);
 	fclose(file);
@@ -83,8 +83,8 @@ Result dumpExtdataToFiles() {
 	badgeMngFileBuf = (u8*)malloc(badgeMngFileSize);
 	if (badgeMngFileBuf == NULL) {ret = 1; goto end;}
 	
-	DIR* dir = opendir("/3ds/data/Simple Badge Injector/Dumped Badge Files");
-	if (!dir) {ret = mkdir("/3ds/data/Simple Badge Injector/Dumped Badge Files", 0777);}
+	DIR* dir = opendir("/3ds/SimpleBadgeInjector/Dumped Badge Files");
+	if (!dir) {ret = mkdir("/3ds/SimpleBadgeInjector/Dumped Badge Files", 0777);}
 	closedir(dir);
 	
 	ret = FSUSER_OpenArchive(&archive, ARCHIVE_EXTDATA, (FS_Path){PATH_BINARY, 0xC, (u8*)extpath});
@@ -102,12 +102,12 @@ Result dumpExtdataToFiles() {
 	FSFILE_Read(extfile, NULL, 0, badgeMngFileBuf, badgeMngFileSize);
 	FSFILE_Close(extfile);
 	
-	FILE* file = fopen("/3ds/data/Simple Badge Injector/Dumped Badge Files/BadgeData.dat", "w");
+	FILE* file = fopen("/3ds/SimpleBadgeInjector/Dumped Badge Files/BadgeData.dat", "w");
 	if (!file) {ret = 4; goto end;}
 	fwrite(badgeDataBuf, 1, badgeDataSize, file);
 	fclose(file);
 	
-	file = fopen("/3ds/data/Simple Badge Injector/Dumped Badge Files/BadgeMngFile.dat", "w");
+	file = fopen("/3ds/SimpleBadgeInjector/Dumped Badge Files/BadgeMngFile.dat", "w");
 	if (!file) {ret = 4; goto end;}
 	fwrite(badgeMngFileBuf, 1, badgeMngFileSize, file);
 	fclose(file);
