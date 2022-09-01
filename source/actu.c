@@ -2,15 +2,18 @@
 
 static Handle actHandle;
 
-Result actInit(void) {
+Result actInit(void)
+{
     return srvGetServiceHandle(&actHandle, "act:u");
 }
 
-Result actExit(void) {
+Result actExit(void)
+{
     return svcCloseHandle(actHandle);
 }
 
-Result actuInit(u32 sdkVersion, u32 unknown, Handle handle) {
+Result actuInit(u32 sdkVersion, u32 unknown, Handle handle)
+{
     Result ret = 0;
     u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -22,12 +25,14 @@ Result actuInit(u32 sdkVersion, u32 unknown, Handle handle) {
     cmdbuf[5] = 0x0;
     cmdbuf[6] = handle;
 
-    if((ret = svcSendSyncRequest(actHandle))!=0) return ret;
+    if ((ret = svcSendSyncRequest(actHandle)) != 0)
+        return ret;
 
     return (Result)cmdbuf[1];
 }
 
-Result actuGetAccountDataBlock(u32 unknown, u32 size, u32 blockId, void* output) {
+Result actuGetAccountDataBlock(u32 unknown, u32 size, u32 blockId, void *output)
+{
     Result ret = 0;
     u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -36,9 +41,10 @@ Result actuGetAccountDataBlock(u32 unknown, u32 size, u32 blockId, void* output)
     cmdbuf[2] = size;
     cmdbuf[3] = blockId;
     cmdbuf[4] = (size << 4) | 0xC;
-    cmdbuf[5] = (u32) output;
+    cmdbuf[5] = (u32)output;
 
-    if((ret = svcSendSyncRequest(actHandle))!=0) return ret;
+    if ((ret = svcSendSyncRequest(actHandle)) != 0)
+        return ret;
 
     return (Result)cmdbuf[1];
 }

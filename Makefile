@@ -1,5 +1,4 @@
 # TARGET #
-
 TARGET := 3DS
 LIBRARY := 0
 
@@ -10,14 +9,12 @@ ifeq ($(TARGET),$(filter $(TARGET),3DS WIIU))
 endif
 
 # COMMON CONFIGURATION #
-
 NAME := Simple Badge Injector
 
 BUILD_DIR := build
 OUTPUT_DIR := output
 INCLUDE_DIRS := include
 SOURCE_DIRS := source
-
 
 EXTRA_OUTPUT_FILES :=
 
@@ -29,10 +26,9 @@ RUN_FLAGS :=
 
 VERSION_MAJOR := 1
 VERSION_MINOR := 3
-VERSION_MICRO := 0
+VERSION_MICRO := 1
 
 # 3DS/Wii U CONFIGURATION #
-
 ifeq ($(TARGET),$(filter $(TARGET),3DS WIIU))
     TITLE := $(NAME)
     DESCRIPTION := An app that injects badge data
@@ -40,7 +36,6 @@ ifeq ($(TARGET),$(filter $(TARGET),3DS WIIU))
 endif
 
 # 3DS CONFIGURATION #
-
 ifeq ($(TARGET),3DS)
     LIBRARY_DIRS += $(DEVKITPRO)/libctru
     LIBRARIES += ctru
@@ -67,5 +62,4 @@ ifeq ($(TARGET),3DS)
 endif
 
 # INTERNAL #
-
 include buildtools/make_base

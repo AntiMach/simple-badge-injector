@@ -7,9 +7,10 @@
 
 #define STATUS(x) x & 0xF00
 
-#define OPTION_CANCEL       (0x00 | OK)
-#define NO_MEMORY           (0x01 | FAIL)
-#define EXIT                (0x02 | OK)
+#define CONTINUE            (0x00 | OK)
+#define EXIT                (0x01 | OK)
+#define NO_MEMORY           (0x02 | FAIL)
+#define OPTION_CANCEL       (0x03 | OK)
 
 #define EXTDATA_EXIST       (0x20 | OK)
 #define EXTDATA_NOT_EXIST   (0x21 | FAIL)
@@ -36,7 +37,7 @@
 #define BADGE_DATA          "/BadgeData.dat"
 #define BADGE_MNG           "/BadgeMngFile.dat"
 
-#define APP_ROOT            "/3ds/SimpleBadgeEditor"
+#define APP_ROOT            "/3ds/SimpleBadgeInjector"
 #define APP_BADGE_DATA      APP_ROOT BADGE_DATA
 #define APP_BADGE_MNG       APP_ROOT BADGE_MNG
 
@@ -49,5 +50,10 @@
 
 const u32 EXTDATA_LOW[] = {MEDIATYPE_SD, 0x000014d1, 0};
 const FS_Path EXTDATA_PATH = (FS_Path){PATH_BINARY,0xC,EXTDATA_LOW};
+
+typedef struct {
+    u8 data[BADGE_DATA_SIZE];
+    u8 mngFile[BADGE_MNG_SIZE];
+} BadgeBufferStruct, *BadgeBuffer;
 
 #endif

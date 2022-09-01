@@ -10,15 +10,40 @@
 #include "console.h"
 #include "defs.h"
 
+
+Result useBuffer(Result (*func)(BadgeBuffer buf))
+{
+    BadgeBuffer buf = NULL;
+
+    if (!(buf = malloc(sizeof(BadgeBufferStruct))))
+        return NO_MEMORY;
+
+    Result ret = func(buf);
+
+    free(buf);
+
+    return ret;
+}
+
+void ensureDir(char *dir_name)
+{
+    DIR *dir = opendir(dir_name);
+
+    if (dir)
+        closedir(dir);
+    else
+        mkdir(dir_name, 0777);
+}
+
+
 Result setupExtdata()
 {
     FS_Archive extdata_archive;
 
-    Result ret = FSUSER_OpenArchive(&extdata_archive, ARCHIVE_EXTDATA, EXTDATA_PATH);
-    FSUSER_CloseArchive(extdata_archive);
-
-    if (!ret)
+    if (!FSUSER_OpenArchive(&extdata_archive, ARCHIVE_EXTDATA, EXTDATA_PATH))
         return EXTDATA_EXIST;
+
+    FSUSER_CloseArchive(extdata_archive);
 
     return createExtSaveData(0x14d1) ? EXTDATA_NOT_CREATE : EXTDATA_CREATE;
 }
@@ -27,15 +52,14 @@ Result deleteExtdata()
 {
     FS_Archive extdata_archive;
 
-    Result ret = FSUSER_OpenArchive(&extdata_archive, ARCHIVE_EXTDATA, EXTDATA_PATH);
-    FSUSER_CloseArchive(extdata_archive);
-
-    if (ret)
+    if (FSUSER_OpenArchive(&extdata_archive, ARCHIVE_EXTDATA, EXTDATA_PATH))
         return EXTDATA_NOT_EXIST;
 
+    FSUSER_CloseArchive(extdata_archive);
+
     printf(FG(YELLOW) "Are you sure you want to delete it?\n");
-    printf(FG(BLUE) "Y = Yes\n");
-    printf(FG(RED) "X = No\n");
+    printf(FG(MAGENTA) "Y = Yes\n");
+    printf(FG(MAGENTA) "X = No\n" RESET);
 
     while (1)
     {
@@ -52,159 +76,86 @@ Result deleteExtdata()
     }
 }
 
-void ensure_dir(char* dir_name) {
-    DIR *dir = opendir(dir_name);
-
-    if (dir)
-        closedir(dir);
-    else
-        mkdir(dir_name, 0777);
-}
-
-Result writeFilesToExtdata()
+Result writeFilesToExtdata(BadgeBuffer buf)
 {
     Handle extfile;
     FS_Archive archive;
-    Result ret;
 
-    u8 *badgeDataBuf = (u8 *)malloc(BADGE_DATA_SIZE);
-    if (!badgeDataBuf)
-        return NO_MEMORY;
-
-    u8 *badgeMngFileBuf = (u8 *)malloc(BADGE_MNG_SIZE);
-    if (!badgeMngFileBuf)
-    {
-        free(badgeDataBuf);
-        return NO_MEMORY;
-    }
-
-    ensure_dir(APP_ROOT);
+    ensureDir(APP_ROOT);
 
     FILE *file;
 
     if (!(file = fopen(APP_BADGE_DATA, "r")))
-    {
-        ret = SD_NOT_READ;
-        goto end;
-    }
-    fread(badgeDataBuf, sizeof(u8), BADGE_DATA_SIZE, file);
+        return SD_NOT_READ;
+
+    fread(buf->data, sizeof(u8), BADGE_DATA_SIZE, file);
     fclose(file);
 
     if (!(file = fopen(APP_BADGE_MNG, "r")))
-    {
-        ret = SD_NOT_READ;
-        goto end;
-    }
-    fread(badgeMngFileBuf, sizeof(u8), BADGE_MNG_SIZE, file);
+        return SD_NOT_READ;
+
+    fread(buf->mngFile, sizeof(u8), BADGE_MNG_SIZE, file);
     fclose(file);
 
     if (FSUSER_OpenArchive(&archive, ARCHIVE_EXTDATA, EXTDATA_PATH))
-    {
-        ret = EXTDATA_NOT_OPEN;
-        goto end;
-    }
+        return EXTDATA_NOT_OPEN;
 
     FSUSER_CreateFile(archive, fsMakePath(PATH_ASCII, BADGE_DATA), 0, BADGE_DATA_SIZE);
 
     if (FSUSER_OpenFile(&extfile, archive, fsMakePath(PATH_ASCII, BADGE_DATA), FS_OPEN_WRITE, 0))
-    {
-        ret = EXTDATA_NOT_WRITE;
-        goto end;
-    }
+        return EXTDATA_NOT_WRITE;
 
-    FSFILE_Write(extfile, NULL, 0, badgeDataBuf, BADGE_DATA_SIZE, FS_WRITE_FLUSH);
+    FSFILE_Write(extfile, NULL, 0, buf->data, BADGE_DATA_SIZE, FS_WRITE_FLUSH);
     FSFILE_Close(extfile);
 
     FSUSER_CreateFile(archive, fsMakePath(PATH_ASCII, BADGE_MNG), 0, BADGE_MNG_SIZE);
 
     if (FSUSER_OpenFile(&extfile, archive, fsMakePath(PATH_ASCII, BADGE_MNG), FS_OPEN_WRITE, 0))
-    {
-        ret = EXTDATA_NOT_WRITE;
-        goto end;
-    }
+        return EXTDATA_NOT_WRITE;
 
-    FSFILE_Write(extfile, NULL, 0, badgeMngFileBuf, BADGE_MNG_SIZE, FS_WRITE_FLUSH);
+    FSFILE_Write(extfile, NULL, 0, buf->mngFile, BADGE_MNG_SIZE, FS_WRITE_FLUSH);
     FSFILE_Close(extfile);
 
-    ret = EXTDATA_WRITE;
-
-end:
-    free(badgeDataBuf);
-    free(badgeMngFileBuf);
-
-    return ret;
+    return EXTDATA_WRITE;
 }
 
-Result dumpExtdataToFiles()
+Result dumpExtdataToFiles(BadgeBuffer buf)
 {
     Handle extfile;
     FS_Archive archive;
-    Result ret;
 
-    u8 *badgeDataBuf = (u8 *)malloc(BADGE_DATA_SIZE);
-    if (!badgeDataBuf)
-        return NO_MEMORY;
-
-    u8 *badgeMngFileBuf = (u8 *)malloc(BADGE_MNG_SIZE);
-    if (!badgeMngFileBuf)
-    {
-        free(badgeDataBuf);
-        return NO_MEMORY;
-    }
-
-    ensure_dir(APP_ROOT);
-    ensure_dir(DUMPED_DIR);
+    ensureDir(APP_ROOT);
+    ensureDir(DUMPED_DIR);
 
     if (FSUSER_OpenArchive(&archive, ARCHIVE_EXTDATA, EXTDATA_PATH))
-    {
-        ret = EXTDATA_NOT_OPEN;
-        goto end;
-    }
+        return EXTDATA_NOT_OPEN;
 
-    ret = FSUSER_OpenFile(&extfile, archive, fsMakePath(PATH_ASCII, BADGE_DATA), FS_OPEN_READ, 0);
-    if (ret)
-    {
-        ret = EXTDATA_NOT_READ;
-        goto end;
-    }
+    if (FSUSER_OpenFile(&extfile, archive, fsMakePath(PATH_ASCII, BADGE_DATA), FS_OPEN_READ, 0))
+        return EXTDATA_NOT_READ;
 
-    FSFILE_Read(extfile, NULL, 0, badgeDataBuf, BADGE_DATA_SIZE);
+    FSFILE_Read(extfile, NULL, 0, buf->data, BADGE_DATA_SIZE);
     FSFILE_Close(extfile);
 
-    ret = FSUSER_OpenFile(&extfile, archive, fsMakePath(PATH_ASCII, BADGE_MNG), FS_OPEN_READ, 0);
-    if (ret)
-    {
-        ret = EXTDATA_NOT_READ;
-        goto end;
-    }
+    if (FSUSER_OpenFile(&extfile, archive, fsMakePath(PATH_ASCII, BADGE_MNG), FS_OPEN_READ, 0))
+        return EXTDATA_NOT_READ;
 
-    FSFILE_Read(extfile, NULL, 0, badgeMngFileBuf, BADGE_MNG_SIZE);
+    FSFILE_Read(extfile, NULL, 0, buf->mngFile, BADGE_MNG_SIZE);
     FSFILE_Close(extfile);
 
     FILE *file;
     if (!(file = fopen(DUMPED_BADGE_DATA, "w")))
-    {
-        ret = SD_NOT_WRITE;
-        goto end;
-    }
-    fwrite(badgeDataBuf, 1, BADGE_DATA_SIZE, file);
+        return SD_NOT_WRITE;
+
+    fwrite(buf->data, 1, BADGE_DATA_SIZE, file);
     fclose(file);
 
     if (!(file = fopen(DUMPED_BADGE_MNG, "w")))
-    {
-        ret = SD_NOT_WRITE;
-        goto end;
-    }
-    fwrite(badgeMngFileBuf, 1, BADGE_MNG_SIZE, file);
+        return SD_NOT_WRITE;
+
+    fwrite(buf->mngFile, 1, BADGE_MNG_SIZE, file);
     fclose(file);
 
-    ret = SD_WRITE;
-
-end:
-    free(badgeDataBuf);
-    free(badgeMngFileBuf);
-
-    return ret;
+    return SD_WRITE;
 }
 
 Result runCommand(int opt)
@@ -223,11 +174,11 @@ Result runCommand(int opt)
         break;
     case 2:
         printf(FG(YELLOW) "Attempting to copy data (this may take a while)" RESET "\n");
-        ret = writeFilesToExtdata();
+        ret = useBuffer(&writeFilesToExtdata);
         break;
     case 3:
         printf(FG(YELLOW) "Attempting to dump data (this may take a while)" RESET "\n");
-        ret = dumpExtdataToFiles();
+        ret = useBuffer(&dumpExtdataToFiles);
         break;
     default:
         break;
@@ -280,6 +231,7 @@ Result runCommand(int opt)
     return ret;
 }
 
+
 int main(int argc, char **argv)
 {
     gfxInitDefault();
@@ -299,7 +251,7 @@ int main(int argc, char **argv)
     printf(FG(BLACK) BG(WHITE) "Log" CLEAR_LINE RESET "\n\n");
 
     if (NNID == 0xFFFFFFFF)
-        printf(FG(RED) "Failed to read NNID." RESET "\n");
+        printf(FG(RED) "Failed to read NNID.\n");
 
     selectTopConsole();
     printf(FG(BLACK) BG(WHITE) " Simple Badge Injector" CLEAR_LINE RESET "\n\n");
@@ -309,11 +261,11 @@ int main(int argc, char **argv)
     else
         printf(" Unknown NNID\n\n");
 
-    printf("   Create ExtData archive 0x14D1" CLEAR_LINE "\n");
-    printf("   Delete ExtData archive 0x14D1" CLEAR_LINE "\n");
-    printf("   Inject custom badge data" CLEAR_LINE "\n");
-    printf("   Dump badge data" CLEAR_LINE "\n");
-    printf("   Exit app" CLEAR_LINE "\n");
+    printf("   Create ExtData archive 0x14D1\n");
+    printf("   Delete ExtData archive 0x14D1\n");
+    printf("   Inject custom badge data\n");
+    printf("   Dump badge data\n");
+    printf("   Exit app\n");
 
     while (aptMainLoop())
     {
