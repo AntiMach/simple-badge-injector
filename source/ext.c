@@ -1,12 +1,8 @@
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <3ds.h>
+#include "ext.h"
 
 u8 null_smdh[0x36C0] = {0};
 
-Result CreateExtSaveData(u32 extdataID)
+Result createExtSaveData(u32 extdataID)
 {
 	Handle* handle = fsGetSessionHandle();
 
@@ -32,7 +28,7 @@ Result CreateExtSaveData(u32 extdataID)
 	return cmdbuf[1];
 }
 
-Result DeleteExtSaveData(u32 extdataID)
+Result deleteExtSaveData(u32 extdataID)
 {
 	Handle* handle = fsGetSessionHandle();
 

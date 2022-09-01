@@ -28,15 +28,15 @@ BUILD_FLAGS :=
 RUN_FLAGS :=
 
 VERSION_MAJOR := 1
-VERSION_MINOR := 0
+VERSION_MINOR := 3
 VERSION_MICRO := 0
 
 # 3DS/Wii U CONFIGURATION #
 
 ifeq ($(TARGET),$(filter $(TARGET),3DS WIIU))
     TITLE := $(NAME)
-    DESCRIPTION := A simple badge injector
-    AUTHOR := TheMachinumps
+    DESCRIPTION := An app that injects badge data
+    AUTHOR := AntiMach
 endif
 
 # 3DS CONFIGURATION #
