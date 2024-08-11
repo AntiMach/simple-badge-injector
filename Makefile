@@ -21,17 +21,21 @@ EXTRA_OUTPUT_FILES :=
 LIBRARY_DIRS := 
 LIBRARIES := 
 
-BUILD_FLAGS := -D__3DS__
 RUN_FLAGS :=
 
 VERSION_MAJOR := 1
 VERSION_MINOR := 3
 VERSION_MICRO := 1
 
+APP_ROOT := /3ds/$(subst $() $(),,$(NAME))
+APP_TITLE := $(NAME) $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_MICRO)
+
+BUILD_FLAGS := -D__3DS__ "-DAPP_TITLE=\"$(APP_TITLE)\"" "-DAPP_ROOT=\"$(APP_ROOT)\""
+
 # 3DS/Wii U CONFIGURATION #
 ifeq ($(TARGET),$(filter $(TARGET),3DS WIIU))
-    TITLE := $(NAME)
-    DESCRIPTION := An app that injects badge data
+    TITLE := $(APP_TITLE)
+    DESCRIPTION := Inject, dump or delete badge data
     AUTHOR := AntiMach
 endif
 

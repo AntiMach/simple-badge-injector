@@ -1,6 +1,6 @@
 # Simple Badge Injector
 
-Create ExtData archives, inject badge data and find your NNID
+Inject, dump or delete badge data as simple as possible.
 
 ## Credits:
 - MrCheeze for actu.c and ext.c (slightly modified)
