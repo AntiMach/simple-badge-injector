@@ -5,6 +5,8 @@ static FS_Archive badgeArchive = 0;
 const u32 EXTDATA_LOW[] = {MEDIATYPE_SD, BADGE_ARCHIVE, 0};
 const FS_Path EXTDATA_PATH = (FS_Path){PATH_BINARY, 0xC, EXTDATA_LOW};
 
+// SD card prepartion
+
 void ensureDir(char *dir_name)
 {
     DIR *dir = opendir(dir_name);
@@ -14,6 +16,8 @@ void ensureDir(char *dir_name)
     else
         mkdir(dir_name, 0777);
 }
+
+// Badge archive operations
 
 Result openBadgeArchive()
 {
@@ -102,6 +106,8 @@ Result readFromBadgeArchive(FS_Path path, size_t size, void *data)
     return 0;
 }
 
+// Badge data operations
+
 BadgeBuffer initBadgeData()
 {
     return malloc(sizeof(BadgeBufferStruct));
@@ -111,6 +117,8 @@ void destroyBadgeData(BadgeBuffer buf)
 {
     free(buf);
 }
+
+// Badge data injection/dump
 
 Result writeBadgeDataToArchive(BadgeBuffer buf)
 {

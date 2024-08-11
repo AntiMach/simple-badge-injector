@@ -142,7 +142,6 @@ int runCommand(int opt)
 
 int injectBadgeData(BadgeBuffer buf)
 {
-    Result res;
 
     if (readBadgeDataFromSD(buf))
         return SD_NOT_READ;
@@ -150,24 +149,16 @@ int injectBadgeData(BadgeBuffer buf)
     if (NNID != 0xFFFFFFFF)
         buf->mngFile.NNID = NNID;
 
-    if (R_FAILED(res = writeBadgeDataToArchive(buf)))
-    {
-        printf("%08lX\n\n", res);
+    if (R_FAILED(writeBadgeDataToArchive(buf)))
         return EXTDATA_NOT_WRITE;
-    }
 
     return EXTDATA_WRITE;
 }
 
 int dumpBadgeData(BadgeBuffer buf)
 {
-    Result res;
-
-    if (R_FAILED(res = readBadgeDataFromArchive(buf)))
-    {
-        printf("%08lX\n\n", res);
+    if (R_FAILED(readBadgeDataFromArchive(buf)))
         return EXTDATA_NOT_READ;
-    }
 
     if (writeBadgeDataToSD(buf))
         return SD_NOT_WRITE;
