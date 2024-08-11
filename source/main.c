@@ -10,6 +10,7 @@
 #include "console.h"
 #include "defs.h"
 
+static u32 NNID = 0xFFFFFFFF;
 
 Result useBuffer(Result (*func)(BadgeBuffer buf))
 {
@@ -34,7 +35,6 @@ void ensureDir(char *dir_name)
     else
         mkdir(dir_name, 0777);
 }
-
 
 Result setupExtdata()
 {
@@ -94,8 +94,11 @@ Result writeFilesToExtdata(BadgeBuffer buf)
     if (!(file = fopen(APP_BADGE_MNG, "r")))
         return SD_NOT_READ;
 
-    fread(buf->mngFile, sizeof(u8), BADGE_MNG_SIZE, file);
+    fread(&buf->mngFile, sizeof(u8), BADGE_MNG_SIZE, file);
     fclose(file);
+
+    if (NNID != 0xFFFFFFFF)
+        buf->mngFile.NNID = NNID;
 
     if (FSUSER_OpenArchive(&archive, ARCHIVE_EXTDATA, EXTDATA_PATH))
         return EXTDATA_NOT_OPEN;
@@ -113,7 +116,7 @@ Result writeFilesToExtdata(BadgeBuffer buf)
     if (FSUSER_OpenFile(&extfile, archive, fsMakePath(PATH_ASCII, BADGE_MNG), FS_OPEN_WRITE, 0))
         return EXTDATA_NOT_WRITE;
 
-    FSFILE_Write(extfile, NULL, 0, buf->mngFile, BADGE_MNG_SIZE, FS_WRITE_FLUSH);
+    FSFILE_Write(extfile, NULL, 0, &buf->mngFile, BADGE_MNG_SIZE, FS_WRITE_FLUSH);
     FSFILE_Close(extfile);
 
     return EXTDATA_WRITE;
@@ -139,7 +142,7 @@ Result dumpExtdataToFiles(BadgeBuffer buf)
     if (FSUSER_OpenFile(&extfile, archive, fsMakePath(PATH_ASCII, BADGE_MNG), FS_OPEN_READ, 0))
         return EXTDATA_NOT_READ;
 
-    FSFILE_Read(extfile, NULL, 0, buf->mngFile, BADGE_MNG_SIZE);
+    FSFILE_Read(extfile, NULL, 0, &buf->mngFile, BADGE_MNG_SIZE);
     FSFILE_Close(extfile);
 
     FILE *file;
@@ -152,7 +155,7 @@ Result dumpExtdataToFiles(BadgeBuffer buf)
     if (!(file = fopen(DUMPED_BADGE_MNG, "w")))
         return SD_NOT_WRITE;
 
-    fwrite(buf->mngFile, 1, BADGE_MNG_SIZE, file);
+    fwrite(&buf->mngFile, 1, BADGE_MNG_SIZE, file);
     fclose(file);
 
     return SD_WRITE;
@@ -231,7 +234,6 @@ Result runCommand(int opt)
     return ret;
 }
 
-
 int main(int argc, char **argv)
 {
     gfxInitDefault();
@@ -239,8 +241,6 @@ int main(int argc, char **argv)
 
     int max = 4;
     int opt = 0;
-
-    u32 NNID = -1;
 
     actInit();
     actuInit(0xB0002C8, 0, 0);
@@ -275,7 +275,8 @@ int main(int argc, char **argv)
         printf("\e[%d;1H ", opt + 5);
 
         opt += -!!(kDown & KEY_UP) + !!(kDown & KEY_DOWN);
-        opt = opt > max ? 0 : opt < 0 ? max : opt;
+        opt = opt > max ? 0 : opt < 0 ? max
+                                      : opt;
 
         printf("\e[%d;1H>", opt + 5);
 

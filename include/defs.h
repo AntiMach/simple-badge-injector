@@ -1,59 +1,77 @@
 #ifndef DEFS_H
 #define DEFS_H
 
-#define OK      0x000
+#define OK 0x000
 #define SUCCESS 0x100
-#define FAIL    0x200
+#define FAIL 0x200
 
 #define STATUS(x) x & 0xF00
 
-#define CONTINUE            (0x00 | OK)
-#define EXIT                (0x01 | OK)
-#define NO_MEMORY           (0x02 | FAIL)
-#define OPTION_CANCEL       (0x03 | OK)
+#define CONTINUE (0x00 | OK)
+#define EXIT (0x01 | OK)
+#define NO_MEMORY (0x02 | FAIL)
+#define OPTION_CANCEL (0x03 | OK)
 
-#define EXTDATA_EXIST       (0x20 | OK)
-#define EXTDATA_NOT_EXIST   (0x21 | FAIL)
-#define EXTDATA_CREATE      (0x22 | SUCCESS)
-#define EXTDATA_NOT_CREATE  (0x23 | FAIL)
-#define EXTDATA_DELETE      (0x24 | SUCCESS)
-#define EXTDATA_NOT_DELETE  (0x25 | FAIL)
-#define EXTDATA_WRITE       (0x26 | SUCCESS)
-#define EXTDATA_NOT_OPEN    (0x27 | FAIL)
-#define EXTDATA_NOT_READ    (0x28 | FAIL)
-#define EXTDATA_NOT_WRITE   (0x29 | FAIL)
+#define EXTDATA_EXIST (0x20 | OK)
+#define EXTDATA_NOT_EXIST (0x21 | FAIL)
+#define EXTDATA_CREATE (0x22 | SUCCESS)
+#define EXTDATA_NOT_CREATE (0x23 | FAIL)
+#define EXTDATA_DELETE (0x24 | SUCCESS)
+#define EXTDATA_NOT_DELETE (0x25 | FAIL)
+#define EXTDATA_WRITE (0x26 | SUCCESS)
+#define EXTDATA_NOT_OPEN (0x27 | FAIL)
+#define EXTDATA_NOT_READ (0x28 | FAIL)
+#define EXTDATA_NOT_WRITE (0x29 | FAIL)
 
-#define SD_WRITE            (0x40 | SUCCESS)
-#define SD_NOT_OPEN         (0x41 | FAIL)
-#define SD_NOT_READ         (0x42 | FAIL)
-#define SD_NOT_WRITE        (0x43 | FAIL)
+#define SD_WRITE (0x40 | SUCCESS)
+#define SD_NOT_OPEN (0x41 | FAIL)
+#define SD_NOT_READ (0x42 | FAIL)
+#define SD_NOT_WRITE (0x43 | FAIL)
 
 #define STATUS_CASE(name, msg) \
-    case name:\
-        printf(msg"\n");\
+    case name:                 \
+        printf(msg "\n");      \
         break;
 
+#define BADGE_DATA "/BadgeData.dat"
+#define BADGE_MNG "/BadgeMngFile.dat"
 
-#define BADGE_DATA          "/BadgeData.dat"
-#define BADGE_MNG           "/BadgeMngFile.dat"
+#define APP_ROOT "/3ds/SimpleBadgeInjector"
+#define APP_BADGE_DATA APP_ROOT BADGE_DATA
+#define APP_BADGE_MNG APP_ROOT BADGE_MNG
 
-#define APP_ROOT            "/3ds/SimpleBadgeInjector"
-#define APP_BADGE_DATA      APP_ROOT BADGE_DATA
-#define APP_BADGE_MNG       APP_ROOT BADGE_MNG
+#define DUMPED_DIR APP_ROOT "/Dumped"
+#define DUMPED_BADGE_DATA DUMPED_DIR BADGE_DATA
+#define DUMPED_BADGE_MNG DUMPED_DIR BADGE_MNG
 
-#define DUMPED_DIR          APP_ROOT "/Dumped"
-#define DUMPED_BADGE_DATA   DUMPED_DIR BADGE_DATA
-#define DUMPED_BADGE_MNG    DUMPED_DIR BADGE_MNG
-
-#define BADGE_DATA_SIZE     0xF4DF80
-#define BADGE_MNG_SIZE      0xD4A8
+#define BADGE_DATA_SIZE 0xF4DF80
+#define BADGE_MNG_SIZE sizeof(BadgeMngFile)
 
 const u32 EXTDATA_LOW[] = {MEDIATYPE_SD, 0x000014d1, 0};
-const FS_Path EXTDATA_PATH = (FS_Path){PATH_BINARY,0xC,EXTDATA_LOW};
+const FS_Path EXTDATA_PATH = (FS_Path){PATH_BINARY, 0xC, EXTDATA_LOW};
 
-typedef struct {
+typedef struct
+{
+    u32 zeros;
+    u32 badgeSets;
+    u32 uniqueBadges;
+    u32 placedBadges;
+    u32 selectedBadgeSet;
+    u32 selectedBadgeColumn;
+    u32 totalBadges;
+    u32 NNID;
+    u8 unknown[0x338];
+    u8 usedBadgeSlots[0x80];
+    u8 usedBadgeSetSlots[0x10];
+    u8 badgeInfoEntries[1000 * 0x28];
+    u8 badgeSetInfoEntries[100 * 0x30];
+    u8 badgeLayoutSlotEntries[360 * 0x18];
+} BadgeMngFile;
+
+typedef struct
+{
     u8 data[BADGE_DATA_SIZE];
-    u8 mngFile[BADGE_MNG_SIZE];
+    BadgeMngFile mngFile;
 } BadgeBufferStruct, *BadgeBuffer;
 
 #endif
