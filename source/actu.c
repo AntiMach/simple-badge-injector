@@ -48,3 +48,23 @@ Result actuGetAccountDataBlock(u32 unknown, u32 size, u32 blockId, void *output)
 
     return (Result)cmdbuf[1];
 }
+
+Result getNNID(u32 *output)
+{
+    Result res;
+
+    res = actInit();
+    if (R_FAILED(res))
+        return res;
+
+    res = actuInit(0xB0002C8, 0, 0);
+    if (R_FAILED(res))
+        goto dispose;
+
+    res = actuGetAccountDataBlock(0xFE, 4, 12, output);
+
+dispose:
+    actExit();
+
+    return res;
+}

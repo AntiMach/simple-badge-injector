@@ -6,6 +6,7 @@
 #include <dirent.h>
 
 #include "ext.h"
+#include "console.h"
 
 #define BADGE_DATA_SIZE 0xF4DF80
 #define BADGE_MNG_SIZE (sizeof(BadgeMngFile))

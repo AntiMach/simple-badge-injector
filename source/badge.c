@@ -67,9 +67,7 @@ Result writeToBadgeArchive(FS_Path path, size_t size, void *data)
     Result res;
     Handle extfile;
 
-    res = FSUSER_CreateFile(badgeArchive, path, 0, size);
-    if (R_FAILED(res))
-        return res;
+    FSUSER_CreateFile(badgeArchive, path, 0, size);
 
     res = FSUSER_OpenFile(&extfile, badgeArchive, path, FS_OPEN_WRITE, 0);
     if (R_FAILED(res))
@@ -127,14 +125,25 @@ Result writeBadgeDataToArchive(BadgeBuffer buf)
     // Open archive
     res = ensureBadgeArchive();
     if (R_FAILED(res))
+    {
+        DEBUG_ERROR("Failed to open ExtData archive (%08lX)", res);
         return res;
+    }
 
     // Read data from archive
     res = writeToBadgeArchive(fsMakePath(PATH_ASCII, BADGE_DATA), BADGE_DATA_SIZE, buf->data);
     if (R_FAILED(res))
+    {
+        DEBUG_ERROR("Failed to write to ExtData archive (%08lX)", res);
         goto cleanupArchive;
+    }
 
     res = writeToBadgeArchive(fsMakePath(PATH_ASCII, BADGE_MNG), BADGE_MNG_SIZE, &buf->mngFile);
+    if (R_FAILED(res))
+    {
+        DEBUG_ERROR("Failed to write to ExtData archive (%08lX)", res);
+        goto cleanupArchive;
+    }
 
 cleanupArchive:
     closeBadgeArchive();
@@ -149,14 +158,29 @@ Result readBadgeDataFromArchive(BadgeBuffer buf)
     // Open archive
     res = openBadgeArchive();
     if (R_FAILED(res))
+    {
+        if (R_SUMMARY(res) == RS_NOTFOUND)
+            DEBUG_ERROR("ExtData archive does not exist");
+        else
+            DEBUG_ERROR("Failed to open ExtData archive (%08lX)", res);
+
         return res;
+    }
 
     // Read data from archive
     res = readFromBadgeArchive(fsMakePath(PATH_ASCII, BADGE_DATA), BADGE_DATA_SIZE, buf->data);
     if (R_FAILED(res))
+    {
+        DEBUG_ERROR("Failed to read from ExtData archive (%08lX)", res);
         goto cleanupArchive;
+    }
 
     res = readFromBadgeArchive(fsMakePath(PATH_ASCII, BADGE_MNG), BADGE_MNG_SIZE, &buf->mngFile);
+    if (R_FAILED(res))
+    {
+        DEBUG_ERROR("Failed to read from ExtData archive (%08lX)", res);
+        goto cleanupArchive;
+    }
 
 cleanupArchive:
     closeBadgeArchive();
@@ -173,14 +197,20 @@ int writeBadgeDataToSD(BadgeBuffer buf)
 
     file = fopen(DUMPED_BADGE_DATA, "w");
     if (!file)
+    {
+        DEBUG_ERROR("Failed to open file " DUMPED_BADGE_DATA);
         return 1;
+    }
 
     fwrite(buf->data, sizeof(u8), BADGE_DATA_SIZE, file);
     fclose(file);
 
     file = fopen(DUMPED_BADGE_MNG, "w");
     if (!file)
+    {
+        DEBUG_ERROR("Failed to open file " DUMPED_BADGE_MNG);
         return 1;
+    }
 
     fwrite(&buf->mngFile, sizeof(u8), BADGE_MNG_SIZE, file);
     fclose(file);
@@ -196,14 +226,20 @@ int readBadgeDataFromSD(BadgeBuffer buf)
 
     file = fopen(APP_BADGE_DATA, "r");
     if (!file)
+    {
+        DEBUG_ERROR("Failed to open file " APP_BADGE_DATA);
         return 1;
+    }
 
     fread(buf->data, sizeof(u8), BADGE_DATA_SIZE, file);
     fclose(file);
 
     file = fopen(APP_BADGE_MNG, "r");
     if (!file)
+    {
+        DEBUG_ERROR("Failed to open file " APP_BADGE_MNG);
         return 1;
+    }
 
     fread(&buf->mngFile, sizeof(u8), BADGE_MNG_SIZE, file);
     fclose(file);

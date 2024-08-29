@@ -6,16 +6,15 @@
 
 #include "actu.h"
 #include "badge.h"
-#include "common.h"
 #include "console.h"
 
 int main(int argc, char **argv);
 int runCommand(int opt);
 
-int injectBadgeData(BadgeBuffer buf);
-int dumpBadgeData(BadgeBuffer buf);
-int deleteBadgeData();
+void injectBadgeData(BadgeBuffer buf);
+void dumpBadgeData(BadgeBuffer buf);
+void deleteBadgeData();
 
-int useBuffer(int (*func)(BadgeBuffer buf));
+void useBuffer(void (*func)(BadgeBuffer buf));
 
 #endif

@@ -19,6 +19,14 @@
 #define RESET "\e[0m"
 #define CLEAR_LINE "\e[K"
 
+#define TITLE(msg, ...) printf(FG(BLACK) BG(WHITE) msg CLEAR_LINE RESET "\n\n", ##__VA_ARGS__)
+
+#define DEBUG_OK(msg, ...) printf(FG(CYAN) msg RESET "\n", ##__VA_ARGS__)
+#define DEBUG_WARNING(msg, ...) printf(FG(YELLOW) msg RESET "\n", ##__VA_ARGS__)
+#define DEBUG_ERROR(msg, ...) printf(FG(RED) msg RESET "\n", ##__VA_ARGS__)
+#define DEBUG_SUCCESS(msg, ...) printf(FG(GREEN) msg RESET "\n", ##__VA_ARGS__)
+#define DEBUG_EXTRA(msg, ...) printf(FG(MAGENTA) msg RESET "\n", ##__VA_ARGS__)
+
 void initConsoles();
 void selectTopConsole();
 void selectBottomConsole();
