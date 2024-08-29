@@ -118,7 +118,7 @@ void destroyBadgeData(BadgeBuffer buf)
 
 // Badge data injection/dump
 
-Result writeBadgeDataToArchive(BadgeBuffer buf)
+Result writeBadgeDataToArchive(BadgeBuffer buf, int mngFileOnly)
 {
     Result res;
 
@@ -131,11 +131,14 @@ Result writeBadgeDataToArchive(BadgeBuffer buf)
     }
 
     // Read data from archive
-    res = writeToBadgeArchive(fsMakePath(PATH_ASCII, BADGE_DATA), BADGE_DATA_SIZE, buf->data);
-    if (R_FAILED(res))
+    if (!mngFileOnly)
     {
-        DEBUG_ERROR("Failed to write to ExtData archive (%08lX)", res);
-        goto cleanupArchive;
+        res = writeToBadgeArchive(fsMakePath(PATH_ASCII, BADGE_DATA), BADGE_DATA_SIZE, buf->data);
+        if (R_FAILED(res))
+        {
+            DEBUG_ERROR("Failed to write to ExtData archive (%08lX)", res);
+            goto cleanupArchive;
+        }
     }
 
     res = writeToBadgeArchive(fsMakePath(PATH_ASCII, BADGE_MNG), BADGE_MNG_SIZE, &buf->mngFile);
@@ -151,7 +154,7 @@ cleanupArchive:
     return res;
 }
 
-Result readBadgeDataFromArchive(BadgeBuffer buf)
+Result readBadgeDataFromArchive(BadgeBuffer buf, int mngFileOnly)
 {
     Result res;
 
@@ -168,11 +171,14 @@ Result readBadgeDataFromArchive(BadgeBuffer buf)
     }
 
     // Read data from archive
-    res = readFromBadgeArchive(fsMakePath(PATH_ASCII, BADGE_DATA), BADGE_DATA_SIZE, buf->data);
-    if (R_FAILED(res))
+    if (!mngFileOnly)
     {
-        DEBUG_ERROR("Failed to read from ExtData archive (%08lX)", res);
-        goto cleanupArchive;
+        res = readFromBadgeArchive(fsMakePath(PATH_ASCII, BADGE_DATA), BADGE_DATA_SIZE, buf->data);
+        if (R_FAILED(res))
+        {
+            DEBUG_ERROR("Failed to read from ExtData archive (%08lX)", res);
+            goto cleanupArchive;
+        }
     }
 
     res = readFromBadgeArchive(fsMakePath(PATH_ASCII, BADGE_MNG), BADGE_MNG_SIZE, &buf->mngFile);

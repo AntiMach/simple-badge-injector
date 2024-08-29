@@ -13,6 +13,7 @@ int runCommand(int opt);
 
 void injectBadgeData(BadgeBuffer buf);
 void dumpBadgeData(BadgeBuffer buf);
+void fixBadgeData(BadgeBuffer buf);
 void deleteBadgeData();
 
 void useBuffer(void (*func)(BadgeBuffer buf));

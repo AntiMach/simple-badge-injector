@@ -53,8 +53,8 @@ Result deleteBadgeArchive();
 BadgeBuffer initBadgeData();
 void destroyBadgeData(BadgeBuffer buf);
 
-Result readBadgeDataFromArchive(BadgeBuffer buf);
-Result writeBadgeDataToArchive(BadgeBuffer buf);
+Result readBadgeDataFromArchive(BadgeBuffer buf, int mngFileOnly);
+Result writeBadgeDataToArchive(BadgeBuffer buf, int mngFileOnly);
 int writeBadgeDataToSD(BadgeBuffer buf);
 int readBadgeDataFromSD(BadgeBuffer buf);
 

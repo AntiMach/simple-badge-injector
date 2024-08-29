@@ -9,8 +9,8 @@ int main(int argc, char **argv)
 
     selectBottomConsole();
 
-    int max = 3;
     int opt = 0;
+    int max = 4;
     Result res = getNNID(&NNID);
 
     TITLE("Log");
@@ -31,6 +31,7 @@ int main(int argc, char **argv)
     printf("\n");
     printf("   Inject badge data\n");
     printf("   Dump badge data\n");
+    printf("   Fix NNID/PNID\n");
     printf("   Delete badge data\n");
     printf("   Exit app\n");
 
@@ -85,6 +86,10 @@ int runCommand(int opt)
         useBuffer(&dumpBadgeData);
         break;
     case 2:
+        DEBUG_WARNING("Fixing NNID/PNID");
+        useBuffer(&fixBadgeData);
+        break;
+    case 3:
         deleteBadgeData();
         break;
     default:
@@ -107,7 +112,7 @@ void injectBadgeData(BadgeBuffer buf)
         buf->mngFile.NNID = NNID;
 
     DEBUG_OK("Writing to ExtData archive...");
-    if (R_FAILED(writeBadgeDataToArchive(buf)))
+    if (R_FAILED(writeBadgeDataToArchive(buf, 0)))
         return;
 
     DEBUG_SUCCESS("Injection was succesful");
@@ -116,7 +121,7 @@ void injectBadgeData(BadgeBuffer buf)
 void dumpBadgeData(BadgeBuffer buf)
 {
     DEBUG_OK("Reading from ExtData archive...");
-    if (R_FAILED(readBadgeDataFromArchive(buf)))
+    if (R_FAILED(readBadgeDataFromArchive(buf, 0)))
         return;
 
     DEBUG_OK("Writing to SD card...");
@@ -124,6 +129,27 @@ void dumpBadgeData(BadgeBuffer buf)
         return;
 
     DEBUG_SUCCESS("Dump was succesful");
+}
+
+void fixBadgeData(BadgeBuffer buf)
+{
+    if (NNID == 0xFFFFFFFF)
+    {
+        DEBUG_ERROR("NNID is unknown");
+        return;
+    }
+
+    DEBUG_OK("Reading from ExtData archive...");
+    if (R_FAILED(readBadgeDataFromArchive(buf, 1)))
+        return;
+
+    buf->mngFile.NNID = NNID;
+
+    DEBUG_OK("Writing to ExtData archive...");
+    if (writeBadgeDataToArchive(buf, 1))
+        return;
+
+    DEBUG_SUCCESS("Done fixing");
 }
 
 void deleteBadgeData()
